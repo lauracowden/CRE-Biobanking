@@ -1,0 +1,103 @@
+---
+title: "CRE Biobanking Project Update"
+author: "Laura L. Cowden"
+date: "2024-12-05"
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include = FALSE}
+library(tidyverse)
+library(janitor)
+library(readxl)
+library(lubridate)
+library(dplyr)
+
+setwd("H:/AMT/CRE Biobanking 2024")
+
+# load data sets
+carba <- read_csv("Carbapenemase Detection.csv") %>%
+  clean_names()
+all <- read_csv("CRE_biobanking_all.csv") %>%
+  clean_names()
+```
+
+```{r carbapenemases detected, include = FALSE}
+# separate date into separate columns for month, day and year
+
+carba <- carba %>%
+  separate(., "date_collected", c("month", "day", "year"), sep = "/")
+
+# statistics
+carba %>%
+  group_by(carbapenemase_detected, year) %>%
+  summarize(count = n())
+```
+
+```{r all data, include = FALSE}
+# create new dataset of frequencies per last name
+all <- all %>%
+  separate(., "collect_date", c("month", "day", "year"), sep = "/")
+
+patient_freq <- all %>%
+  group_by(last_name) %>% 
+  summarize(count=n())
+
+patient_freq %>%
+  count(count)
+```
+
+<font size="5"> CRE Biobanking Data Review </font> 
+
+As of December 5th 2024, a total of 733 CRE isolates have been collected spanning years 2018-2024.
+
+There was a notable drop in collections in recent years; potentially partly due to the influx of new micro techs at the AMT bench not putting them aside. Re-training occurred in summer of 2024 in attempt to correct this.
+
+```{r totals per year, echo=FALSE}
+ggplot(all, aes(year))+
+  geom_bar(fill = "cyan4")+
+  xlab("number of CRE isolates collected")
+```
+
+<font size="4"> Opportunities for Longitudinal Study </font> 
+
+The following histogram plots the number of isolates collected per any one patient over time:
+
+```{r long, echo=FALSE}
+ggplot(patient_freq, aes(count))+
+  geom_bar(fill = "cornflowerblue")+
+  xlab("number of CRE isolates collected per any one patient")+
+  scale_x_continuous(labels = 0:23, breaks = 0:23) 
+  
+```
+
+<font size="4"> Carbapenemases Detected </font> 
+
+Clinical microbiology began testing for the top-5 carbapenemase enzymes in late 2022. These data consist of isolates tested between that time and November 2024.
+
+```{r source, echo=FALSE}
+# carbapenemases detected by source
+ggplot(carba, aes(carbapenemase_detected, fill = source))+
+         geom_bar()+
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5))+
+  labs(title = "Carbapenemases detected by Source")
+```
+
+```{r species, echo=FALSE}
+# carbapenemases detected by species
+ggplot(carba, aes(carbapenemase_detected, fill = species))+
+  geom_bar()+
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5))+
+  labs(title = "Carbapenemases Detected by Species")
+```
+
+```{r year, echo=FALSE}
+# carbapenemases detected by year
+ggplot(carba, aes(carbapenemase_detected, fill = year))+
+  geom_bar()+
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5))+
+  labs(title = "Carbapenemases Detected by Year")
+```
+
